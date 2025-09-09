@@ -1,0 +1,68 @@
+\documentclass[twoside,final]{hcmut-report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[protrusion=false]{microtype}
+
+\usepackage{graphicx, caption}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{multirow,multicol}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{makecell}
+\usepackage{subcaption}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{tcolorbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{lastpage}
+
+\definecolor{keywordcolor}{rgb}{0.13,0.13,1} % Blue keywords
+\definecolor{stringcolor}{rgb}{0.7,0.13,0.13} % Dark red strings
+\definecolor{commentcolor}{rgb}{0.25,0.5,0.35} % Green comments
+\definecolor{backgroundcolor}{rgb}{0.97,0.97,0.97} % Light background
+
+\lstset{
+  language=Python,
+  backgroundcolor=\color{backgroundcolor},
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  stepnumber=1,
+  numbersep=10pt,
+  tabsize=4,
+  showspaces=false,
+  showstringspaces=false,
+  breaklines=true,
+  breakatwhitespace=true,
+  frame=single,
+}
+
+\newcommand{\python}[1]
+{
+  \begin{lstlisting}[language=Python]
+    #1
+  \end{lstlisting}
+}
+\AtBeginDocument{\counterwithin{lstlisting}{section}}
+
+\begin{document}
+\fancyfoot{}
+\coverpage\clearpage
+
+% \tableofcontents
+% \listoffigures
+% \clearpage
+\setcounter{page}{1}
+\fancyfoot[L]{\scriptsize \ttfamily Data Mining -- Assignment Report\\1$^{\texttt{st}}$ Semester -- Academic year 2025-2026}
+\fancyfoot[R]{\scriptsize \ttfamily Page {\thepage}/\pageref{LastPage}}
+test
+\end{document}
