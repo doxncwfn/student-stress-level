@@ -14,8 +14,6 @@
 - [Project Structure](#project-structure)
 - [Algorithms Implemented](#algorithms-implemented)
 - [Results](#results)
-- [Work Division](#work-division)
-- [Contributors](#contributors)
 - [Resources](#resources)
 - [License](#license)
 
