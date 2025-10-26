@@ -45,7 +45,7 @@
 \newcommand{\@reporttype}{Assignment Report}
 \renewcommand{\@title}{Student Stress Insights: Identifying Key Predictors}
 \newcommand{\@advisor}{& Msc. Thai Do Thanh &}
-\newcommand{\@stuname}{& Cuong Doan Phuong Hung & ID 231038 \\
+\newcommand{\@stuname}{& Cuong Doan Phuong Hung & ID 2310381 \\
   & Hieu Nguyen Trung & ID 2113357 \\
   & Tue Nguyen Phu & ID 2213813}
 \newcommand{\stuname}[1]{\renewcommand{\@stuname}{#1}}
@@ -57,12 +57,12 @@
 % Configurations
 \geometry{
   paper=a4paper,
-  left=2.5cm,
-  right=2.5cm,
-  top=2cm,
-  bottom=2cm,
+  left=2cm,
+  right=2cm,
+  top=1.5cm,
+  bottom=1.5cm,
   includeheadfoot=true,
-  headheight=35pt
+  headheight=30pt
 }
 \onehalfspacing
 \raggedbottom

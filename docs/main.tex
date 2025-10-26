@@ -58,11 +58,220 @@
 \fancyfoot{}
 \coverpage\clearpage
 
-% \tableofcontents
+\tableofcontents
 % \listoffigures
-% \clearpage
+\clearpage
 \setcounter{page}{1}
 \fancyfoot[L]{\scriptsize \ttfamily Data Mining -- Assignment Report\\1$^{\texttt{st}}$ Semester -- Academic year 2025-2026}
 \fancyfoot[R]{\scriptsize \ttfamily Page {\thepage}/\pageref{LastPage}}
-test
+\section{Introduction and Project Objectives}
+\subsection{Aim of the Project}
+\subsection{Specific Objectives}
+\clearpage
+\section{Explotatory Data Analysis}
+\subsection{Data Loading and Initial Inspection}
+The dataset was loaded from a CSV file (\texttt{StressLevelDataset.csv}), which was obtained from \href{https://www.kaggle.com/datasets/mdsultanulislamovi/student-stress-monitoring-datasets}{\textcolor{blue}{\textit{Kaggle}}} and imported into a Pandas DataFrame for analysis. This dataset offers a comprehensive overview of factors that influence student stress, spanning psychological, physiological, environmental, academic, and social aspects. It is suitable for tasks such as stress prediction and factor analysis, with all data provided in numerical format for straightforward processing.
+\begin{itemize}
+  \item \textbf{Data Shape:} The dataset consists of \texttt{1100} rows (instances) and \texttt{21} columns (\texttt{20} features + \texttt{1} target variable). This size is sufficient for exploratory analysis and modeling without overwhelming computational resources.
+  \item \textbf{Data Quality:} There are no missing values or duplicate rows, indicating a clean and well-prepared dataset. All columns are of type \texttt{int64}, confirming numerical data with no need for type conversion or imputation. No categorical strings or timestamps are present, simplifying preprocessing.
+  \item \textbf{Column Names and Descriptions:} The features cover a range of student experiences, measured on ordinal scales. Most are rated from \texttt{0} (low/absent) to \texttt{5} (high/severe), except for a few with wider rangegs based on standard psychological metrics.
+  \item \textbf{Target Variable Distribution:} The target variable (\texttt{stress\_level}) is a multiclass label and is balanced among the classes. This near-equal distribution reduces bias in classification models and reflects a representative sample across stress severities.\\
+        \begin{minipage}{0.35\textwidth}
+          \centering
+          \includegraphics[width=\textwidth]{../images/stress_level_distribution.png}
+          \label{stress_level_distribution}
+        \end{minipage}
+        \hfill
+        \begin{minipage}{0.65\textwidth}
+          \begin{itemize}
+            \item Level 0 (low stress): \texttt{373} instances ($\sim$33.9\%)
+            \item Level 1 (medium stress): \texttt{358} instances ($\sim$32.5\%)
+            \item Level 2 (high stress): \texttt{369} instances ($\sim$33.6\%)
+          \end{itemize}
+        \end{minipage}
+\end{itemize}
+
+\subsubsection*{Statistical Insights}
+A summary of some basic statistics for numerical features is provided below (computed via \texttt{.describe()}), shows reasonable variability across features, with no extreme outliers apparent at first glance.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../images/describe.png}
+  \caption{Some Summary Statistics}
+  \label{describe}
+\end{figure}
+\begin{enumerate}
+  \item \textbf{Psychological Factors:}
+        \begin{itemize}
+          \item \texttt{anxiety\_level} and \texttt{depression} have high variability, indicating diverse mental health states among students.
+          \item \texttt{self\_esteem} is generally positive but with noticeable spread.
+          \item \texttt{mental\_health\_history} is nearly evenly split, useful as a binary predictor.
+        \end{itemize}
+  \item \textbf{Physiological Factors:}
+        \begin{itemize}
+          \item Features like \texttt{headache}, \texttt{breathing\_problem}, and \texttt{sleep\_quality} mostly cluster around mid-values; notably, a subset reports poor sleep.
+          \item \texttt{blood\_pressure} is more often normal or high.
+        \end{itemize}
+  \item \textbf{Environmental/Social Factors:}
+        \begin{itemize}
+          \item Most students report moderate levels in aspects like \texttt{noise\_level}, \texttt{living\_conditions}, and \texttt{safety}, but outliers exist.
+          \item \texttt{social\_support} is moderate, with some reporting low support.
+          \item Stressors such as \texttt{bullying} and \texttt{peer\_pressure} are mid-range on average but right-skewed.
+        \end{itemize}
+  \item \textbf{Academic Factors:} Academic features (\texttt{academic\_performance}, \texttt{study\_load}, etc.) are generally balanced, with means close to the scale midpoint.
+  \item \textbf{Target Variable (\texttt{stress\_level}):} Almost perfectly balanced across all levels, making the dataset suitable for classification tasks.
+\end{enumerate}
+
+\paragraph*{Overall Insights:}
+\begin{itemize}
+  \item The dataset is balanced and clean, with no missing values (all feature counts = 1100).
+  \item Psychological metrics such as {\tt anxiety\_level} and {\tt depression} exhibit higher variability (greater standard deviation relative to their range) compared to ordinal 0--5 features, which cluster around std~$1.4$. This suggests more diverse experiences in mental health aspects among students than in environmental or academic features.
+  \item Quartile analysis shows that many stressor-related features (e.g., {\tt bullying}) are slightly right-skewed: the lower quartile (25\%) is low, while the upper quartile (75\%) is considerably higher. Thus, while most students report moderate conditions, a minority experience much higher levels of specific stressors.
+  \item Features with greater variance (like anxiety and depression) are expected to be stronger predictors of stress, whereas environmental variables, despite moderate means, may serve more as moderators.
+  \item Minimum and maximum values largely stay within the designated feature ranges, with no obvious extreme outliers. These distributions will be further examined using violin plots later in the report to visually confirm the absence of anomalies and illustrate how feature spreads vary by stress level.
+\end{itemize}
+
+\subsection{Data Visualization and Insights}
+Visualizations were generated using \texttt{Matplotlib} and \texttt{Seaborn} to explore distributions, relationships, and patterns. All figures were saved to the images directory for inclusion in the report. Key visualizations and insights are described below.
+\subsubsection{Correlation Heatmap}
+This visualization highlights key relationships influencing student stress, revealing distinct patterns in psychological, physiological, environmental, academic, and social factors. Notably, the correlations are generally moderate to strong ($|r| > 0.6$ for many pairs), indicating interconnected dimensions of student well-being.
+
+\noindent
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1.1\textwidth]{../images/correlation_heatmap.png}
+  \caption{Correlation Heatmap}
+  \label{corr_Heatmap}
+\end{figure}
+
+\paragraph*{Correlation Analysis Insights:}
+\begin{enumerate}
+  \item \textbf{Strongest Positive Correlations with Stress Level:}
+        \begin{itemize}
+          \item \textbf{Primary stress amplifiers:} The highest include \texttt{bullying} ($r=0.75$), \texttt{anxiety\_level} ($r=0.74$), \texttt{future\_career\_concerns} ($r=0.74$), \texttt{depression} ($r=0.73$), \texttt{headache} ($r=0.71$), and \texttt{peer\_pressure} ($r=0.71$). These align with research showing that bullying and academic pressures contribute to elevated stress and related mental health issues, such as self-harm behaviors in middle school students. Similarly, anxiety and depression are well-documented predictors of stress, often forming a vicious cycle that impacts academic outcomes.
+          \item \textbf{Secondary contributors:} \texttt{noise\_level} ($r=0.68$), \texttt{extracurricular\_activities} ($r=0.67$), \texttt{study\_load} ($r=0.65$), and \texttt{mental\_health\_history} ($r=0.65$), implying that environmental noise and overloaded schedules exacerbate stress, consistent with studies on chronic academic stress leading to insufficient sleep and negative affect.
+          \item \textbf{Physiological indicators:} \texttt{blood\_pressure} ($r=0.39$) and \texttt{breathing\_problem} ($r=0.37$) show milder associations, potentially indicating secondary stress manifestations.
+        \end{itemize}
+
+  \item \textbf{Strongest Negative Correlations with Stress Level:}
+        \begin{itemize}
+          \item \textbf{Key protective factors:} \texttt{self\_esteem} ($r=-0.76$), \texttt{sleep\_quality} ($r=-0.75$), \texttt{basic\_needs} ($r=-0.72$), \texttt{living\_conditions} ($r=-0.71$), \texttt{safety} ($r=-0.71$), and \texttt{academic\_performance} ($r=-0.71$). This suggests that fulfilling basic needs, safe environments, and strong academic achievement act as buffers against stress, corroborating findings that self-esteem and sleep quality are crucial predictors of lower stress levels among students.
+          \item \textbf{Social support factors:} \texttt{social\_support} ($r=-0.68$) and \texttt{teacher\_student\_relationship} ($r=-0.63$). This highlights the role of supportive networks in reducing stress, as supported by research on mental health in first-year university students.
+        \end{itemize}
+
+  \item \textbf{Inter-Correlation Clusters:}
+        \begin{itemize}
+          \item \textbf{Mental health vulnerability cluster:} \texttt{anxiety\_level} with \texttt{depression} ($r=0.69$), both strongly linked with \texttt{mental\_health\_history} ($r \approx 0.63{-}0.70$), indicating these factors often co-occur and amplify stress.
+          \item \textbf{Resilience cluster:} \texttt{self\_esteem}, \texttt{sleep\_quality}, \texttt{academic\_performance}, and \texttt{social\_support} (inter-correlations $r \approx 0.50{-}0.70$), all negatively associated with stress-related variables.
+          \item \textbf{Social pressure cluster:} \texttt{bullying}, \texttt{peer\_pressure}, and \texttt{future\_career\_concerns} (inter-correlations $r \approx 0.50{-}0.65$), reinforcing their collective impact on stress levels.
+        \end{itemize}
+
+  \item \textbf{Implications for Modeling and Multicollinearity:}
+        \begin{itemize}
+          \item \textbf{Multicollinearity concerns:} High inter-correlations (\texttt{depression} and \texttt{self\_esteem} at $r=-0.70$, \texttt{anxiety\_level} and \texttt{sleep\_quality} at $r=-0.66$) signal potential multicollinearity that could inflate variance in regression models.
+          \item \textbf{Recommended techniques:} Variance inflation factor (VIF) checks or principal component analysis (PCA) are recommended to address multicollinearity issues.
+          \item \textbf{Feature selection priority:} The heatmap provides a foundation for feature selection in predictive modeling, prioritizing high-correlation variables like \texttt{bullying} and \texttt{self\_esteem}.
+          \item \textbf{Intervention targets:} Patterns suggest that interventions targeting mental health (reducing anxiety and improving sleep) and social factors (anti-bullying programs) could effectively lower stress levels.
+        \end{itemize}
+\end{enumerate}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../images/high_corr_scatterplots.png}
+  \caption{Highly Correlated Pairs}
+  \label{highly_corr_pairs}
+\end{figure}
+\paragraph*{Insights:}
+\begin{itemize}
+  \item The scatterplots highlight pairs with $|r| \geq 0.7$ from the correlation analysis:Each pair exhibits a strong positive linear trend with dense clustering and few outliers, echoing the correlation heatmap and underscoring the interconnectedness of key student stressors.
+  \item In data mining, these high correlations signal potential multicollinearity, making variance inflation factor (VIF) assessment or principal component analysis (PCA) necessary for dimensionality reduction to improve model stability in stress prediction.
+  \item The pronounced linear relationships support the use of regression-based predictive models, while the presence of tight point clusters suggests the applicability of clustering algorithms to identify subgroups and enable targeted feature engineering.
+\end{itemize}
+
+\subsubsection{Key Features Distributions}
+The following visualizations are essential in data mining for identifying patterns, skewness, and potential preprocessing needs, such as normalization or transformation, to enhance model performance in classification tasks like this topic.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../images/numeric_histograms.png}
+  \caption{Key Features Distributions}
+  \label{key_hists}
+\end{figure}
+\paragraph*{Insights:}
+\begin{enumerate}
+  \item \textbf{Symmetric and Bell-Shaped Distributions}
+        \begin{itemize}
+          \item Psychological features like \texttt{anxiety\_level} and \texttt{depression} exhibit approximately normal distributions with peaks in the moderate range.
+          \item Indicates widespread moderate symptoms among students, aligning with research showing prevalent anxiety and depression linked to academic pressures.
+          \item For data mining, such normal distributions are ideal for parametric models (e.g., linear regression) with minimal need for transformation.
+          \item High variability ($\mathrm{std}\approx 6$--$7$) suggests feature scaling may be necessary for algorithms such as SVM or neural networks, since these models are sensitive to differences in feature scales and may perform poorly or converge slowly if features are not normalized.
+        \end{itemize}
+
+  \item \textbf{Binary and Imbalanced Distribution}
+        \begin{itemize}
+          \item \texttt{Mental\_health\_history} is binary and slightly imbalanced ($\sim$55\% at 0, mean 0.49, median 0.00): roughly half of students report no prior mental health issues.
+          \item This feature could serve as a strong categorical predictor in mining tasks but may require stratified sampling to avoid bias.
+          \item Its skewed distribution (mode at 0) highlights possible class imbalance, suggesting oversampling techniques may be needed.
+        \end{itemize}
+
+  \item \textbf{Skewed Distributions in Social and Academic Stressors}
+        \begin{itemize}
+          \item Features like \texttt{future\_career\_concerns}, \texttt{peer\_pressure}, and \texttt{bullying} show positive skewness (right-tailed) with modes at lower values.
+          \item Most students experience low-to-moderate levels, but some face intense issues, consistent with research on adolescent stress.
+          \item For data mining, applying log transformations or binning may normalize these features or optimize them for tree-based models.
+        \end{itemize}
+
+  \item \textbf{Multimodal or Mildly Skewed Distributions}
+        \begin{itemize}
+          \item \texttt{Headache} and \texttt{extracurricular\_activities} have bimodal patterns; \texttt{noise\_level} is more symmetric with a central mode at $3$.
+          \item These indicate clusters in student experiences -- such as differing levels of environmental noise or activity participation -- which may impact stress.
+          \item In data mining, multimodal features suggest exploring clustering algorithms (e.g., K-means) to segment subgroups, since multiple peaks often indicate the presence of distinct groups within the data.
+          \item Mean-median discrepancies indicate mild left skew; outlier checks and robust scaling may be warranted.
+        \end{itemize}
+
+  \item \textbf{Data Mining Implications}
+        \begin{itemize}
+          \item The dataset exhibits a mix of normal and skewed features; this informs preprocessing strategies such as feature scaling and strategies for skewness.
+          \item Agreement between mean and median in symmetric features supports using standard central tendency; skewed features highlight opportunities for feature engineering.
+          \item These findings guide further analyses, such as bivariate plots against \texttt{stress\_level}, to investigate conditional distributions for predictive modeling.
+        \end{itemize}
+\end{enumerate}
+
+\subsubsection{Detecting Anomalies and Outliers}
+The violin plots provide a bivariate view of the distributions, combining density estimates with boxplot elements to reveal spreads, modes, and potential outliers. These visualizations are crucial in data mining for detecting anomalies, assessing group differences, and informing preprocessing steps like outlier handling, which can significantly impact model accuracy in classification or regression tasks. The plots highlight how feature values shift across stress categories, with wider violins indicating higher variability and tails signaling outliers, often more pronounced in high-stress groups.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../images/violinplots_by_stress_level.png}
+  \caption{Violin Plots}
+  \label{violinplots}
+\end{figure}
+
+\paragraph*{Insights:}
+\begin{enumerate}
+  \item \textbf{Increasing Trends with Stress Levels}
+        \begin{itemize}
+          \item Psychological and social features including \texttt{anxiety\_level}, \texttt{depression}, \texttt{bullying}, \texttt{peer\_pressure}, and \texttt{future\_career\_concerns} exhibit clear positive shifts across stress categories: low-stress groups present with narrow, low-value densities, while high-stress demonstrate broader, higher-value distributions.
+          \item Features such as \texttt{headache} and \texttt{noise\_level} also rise notably, with medians progressing from $\sim$1--2 (low stress) to $\sim$3--4 (high stress).
+          \item This trend is consistent with educational data mining findings, where engineered features -- such as binned or transformed high tails -- improve model interpretability of stress predictors.
+          \item \texttt{Extracurricular\_activities} trends upward as well, implicating overload as a contributing factor, in line with studies on academic performance stressors.
+        \end{itemize}
+
+  \item \textbf{Binary Feature Insights}
+        \begin{itemize}
+          \item The binary feature \texttt{Mental\_health\_history} manifests as thin spikes: level 0 is concentrated at $0$, whereas level 2 becomes bimodal with notable density at $1$.
+          \item This suggests a threshold effect valuable for decision rules in tree-based models, where binary splits on such features effectively classify stress levels.
+        \end{itemize}
+
+  \item \textbf{Outlier Detection and Variability}
+        \begin{itemize}
+          \item Extended tails in high-stress violin plots -- notably for \texttt{depression} and \texttt{anxiety} (outliers beyond 20--25 at level 2), and \texttt{bullying} or \texttt{peer\_pressure} (up to $5$) -- highlight potential anomalies.
+          \item The increase in feature variability (wider violins at level 2) signals heteroscedasticity, justifying the use of robust preprocessing to facilitate better generalization.
+        \end{itemize}
+
+  \item \textbf{Data Mining Implications}
+        \begin{itemize}
+          \item These observations emphasize the need for outlier-aware preprocessing in student stress prediction pipelines, as anomalous values (especially in \texttt{depression}) can unduly influence feature importance metrics.
+          \item Clustering techniques may help segment and analyze outlier subpopulations, enhancing model robustness.
+          \item Collectively, these insights inform feature selection and transformation choices, ultimately supporting improved predictive performance for multiclass stress classification -- mirroring findings in related data mining competitions and research.
+        \end{itemize}
+\end{enumerate}
+
+
 \end{document}

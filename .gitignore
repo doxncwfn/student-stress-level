@@ -1,3 +1,4 @@
+# LaTeX auxiliary files
 *.aux
 *.log
 *.out
@@ -45,10 +46,9 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# =========================
 # Project specific
-# =========================
 data/raw/             # original survey dataset (not tracked in GitHub)
 data/processed/       # cleaned & engineered data
-reports/figures/      # generated plots/images
+report/figures/       # generated plots/images
 reports/*.html        # report exports
+images/
