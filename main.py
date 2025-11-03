@@ -371,7 +371,12 @@ def complete_pipeline():
     
     # Step 1: Preprocessing
     print_section("STEP 1: DATA PREPROCESSING")
-    data_path = 'data/raw/StressLevelDataset.csv'
+    dataset_choice = get_user_choice(1, 2)
+    
+    if dataset_choice == 1:
+        data_path = 'data/raw/StressLevelDataset.csv'
+    else:
+        data_path = 'data/raw/Stress_Dataset.csv'
     preprocessor = DataPreprocessor(data_path)
     X_train, X_test, y_train, y_test = preprocessor.preprocess_pipeline()
     
