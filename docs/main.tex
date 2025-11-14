@@ -21,8 +21,6 @@
 \usepackage{tikz}
 \usepackage{pgfplots}
 \usepackage{tcolorbox}
-\usepackage{listings}
-\usepackage{xcolor}
 \usepackage{lastpage}
 
 \definecolor{keywordcolor}{rgb}{0.13,0.13,1} % Blue keywords
@@ -30,6 +28,25 @@
 \definecolor{commentcolor}{rgb}{0.25,0.5,0.35} % Green comments
 \definecolor{backgroundcolor}{rgb}{0.97,0.97,0.97} % Light background
 
+\lstdefinelanguage{Python}{
+  morekeywords={
+    and, as, assert, async, await, break, class, continue, def, del, elif, else, except,
+    False, finally, for, from, global, if, import, in, is, lambda, None, nonlocal, not, 
+    or, pass, raise, return, True, try, while, with, yield
+  },
+  keywordstyle=\color{keywordcolor}\bfseries,
+  morekeywords=[2]{bool, bytes, bytearray, complex, dict, float, frozenset, int, list, object, set, str, tuple},
+  keywordstyle=[2]\color{blue}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=true,
+  comment=[l]{\#},
+  morecomment=[s]{'''}{'''}, 
+  morecomment=[s]{"""}{"""},
+  commentstyle=\color{commentcolor}\ttfamily,
+  stringstyle=\color{stringcolor}\ttfamily,
+  morestring=[b]',
+  morestring=[b]",
+}
 \lstset{
   language=Python,
   backgroundcolor=\color{backgroundcolor},
@@ -38,7 +55,7 @@
   numberstyle=\tiny\color{gray},
   stepnumber=1,
   numbersep=10pt,
-  tabsize=4,
+  tabsize=2,
   showspaces=false,
   showstringspaces=false,
   breaklines=true,
@@ -46,9 +63,104 @@
   frame=single,
 }
 
+\lstdefinelanguage{TypeScript}{
+  keywords={abstract, as, boolean, break, case, catch, class, continue, const, constructor, debugger, declare, default, delete, do, else, enum, export, extends, false, finally, for, from, function, get, if, implements, import, in, infer, instanceof, interface, is, keyof, let, module, namespace, never, new, null, number, object, of, package, private, protected, public, readonly, require, global, return, set, static, string, super, switch, symbol, this, throw, true, try, type, typeof, undefined, unique, unknown, var, void, while, with, yield, async, await},
+  keywordstyle=\color{keywordcolor}\bfseries,
+  ndkeywords={string, number, boolean, Promise, any, void},
+  ndkeywordstyle=\color{blue}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=true,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{commentcolor}\ttfamily,
+  stringstyle=\color{stringcolor}\ttfamily,
+  morestring=[b]',
+  morestring=[b]",
+}
+
+\lstset{
+  language=TypeScript,
+  backgroundcolor=\color{backgroundcolor},
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  stepnumber=1,
+  numbersep=10pt,
+  tabsize=2,
+  showspaces=false,
+  showstringspaces=false,
+  breaklines=true,
+  breakatwhitespace=true,
+  frame=single,
+}
+\lstdefinelanguage{EnvCustom}{
+  keywords={VITE_APP_API_URL, DATABASE_URL, DB_HOST, DB_USER, DB_PASSWORD, DB_PORT, DB_NAME, JWT_SECRET},
+  keywordstyle=\color{blue}\bfseries,
+  sensitive=true,
+  comment=[l]{\#},
+  commentstyle=\color{gray}\ttfamily,
+  morestring=[b]',
+  morestring=[b]",
+  stringstyle=\color{red}\ttfamily,
+  identifierstyle=\color{black}
+}
+
+\lstdefinelanguage{JavaScriptCustom}{
+  keywords={
+    break, case, catch, class, const, continue, debugger, default, delete, do, else, export,
+    extends, finally, for, function, if, import, in, instanceof, let, new, return, super, 
+    switch, this, throw, try, typeof, var, void, while, with, yield, await, async,
+    mysql, dotenv, process, config, createPool, getConnection, release
+  },
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={true, false, null, undefined, NaN, Infinity},
+  ndkeywordstyle=\color{teal}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=true,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{gray}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
+}
+
+
+\lstdefinelanguage{SQL}
+{
+  keywords={SELECT, FROM, WHERE, GROUP BY, HAVING, ORDER, BY, CREATE, PROCEDURE, FUNCTION, TRIGGER, BEGIN, END, DECLARE, IF, ELSE, RETURN, SET, INSERT, UPDATE, DELETE, INTO, VALUES, SIGNAL, JOIN, ON, AND, IN, GROUP, AS, RETURNS, DETERMINISTIC, COUNT, IFNULL, SQL, DATA, READS, THEN, AFTER, FOR, EACH, ROW, OLD, NEW, ROUND, CONSTRAINT, FOREIGN, KEY, REFERENCES, PRIMARY, CHECK, TABLE, DEFAULT, DESC, UNION, ALL, OVER, WHILE, DO, LEAVE, EXISTS, BEFORE, OR, IDENTIFIED, GRANT, TO, LEFT, RIGHT},
+  keywordstyle=\color{blue}\bfseries,
+  morekeywords=[2]{INT, CHAR, VARCHAR, BOOLEAN, DATE, DECIMAL, ENUM, TIME, CASCADE, NULL, NOT, USER, PRIVILEGES, TRUE},
+  keywordstyle=[2]\color{red}\bfseries,
+  comment=[l]{--},
+  commentstyle=\color{gray}\ttfamily,
+  morestring=[b]',
+  stringstyle=\color{teal},
+  basicstyle=\ttfamily\small,
+  showstringspaces=false,
+  breaklines=true
+}
+
+\lstset
+{
+  language=SQL,
+  frame=single,
+  breaklines=true,
+  columns=flexible,
+  keepspaces=true,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  backgroundcolor=\color{white}
+}
+\newcommand{\sql}[1]
+{
+  \begin{lstlisting}[language=sql]
+    #1
+  \end{lstlisting}
+}
 \newcommand{\python}[1]
 {
-  \begin{lstlisting}[language=Python]
+  \begin{lstlisting}[language=python]
     #1
   \end{lstlisting}
 }
@@ -92,7 +204,7 @@ The dataset was loaded from a CSV file (\texttt{StressLevelDataset.csv}), which 
 \end{itemize}
 
 \subsubsection*{Statistical Insights}
-A summary of some basic statistics for numerical features is provided below (computed via \texttt{.describe()}), shows reasonable variability across features, with no extreme outliers apparent at first glance.
+A summary of some basic statistics for numerical features is provided below (computed via \texttt{.describe()} method), shows reasonable variability across features, with no extreme outliers apparent at first glance.
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{../images/describe.png}
@@ -140,7 +252,7 @@ This visualization highlights key relationships influencing student stress, reve
   \centering
   \includegraphics[width=1.1\textwidth]{../images/correlation_heatmap.png}
   \caption{Correlation Heatmap}
-  \label{corr_Heatmap}
+  \label{corr_heatmap}
 \end{figure}
 
 \paragraph*{Correlation Analysis Insights:}
@@ -181,7 +293,7 @@ This visualization highlights key relationships influencing student stress, reve
 \end{figure}
 \paragraph*{Insights:}
 \begin{itemize}
-  \item The scatterplots highlight pairs with $|r| \geq 0.7$ from the correlation analysis:Each pair exhibits a strong positive linear trend with dense clustering and few outliers, echoing the correlation heatmap and underscoring the interconnectedness of key student stressors.
+  \item The scatterplots highlight pairs with $|r| \geq 0.7$ from the correlation analysis: Each pair exhibits a strong positive linear trend with dense clustering and few outliers, echoing the correlation heatmap and underscoring the interconnectedness of key student stressors.
   \item In data mining, these high correlations signal potential multicollinearity, making variance inflation factor (VIF) assessment or principal component analysis (PCA) necessary for dimensionality reduction to improve model stability in stress prediction.
   \item The pronounced linear relationships support the use of regression-based predictive models, while the presence of tight point clusters suggests the applicability of clustering algorithms to identify subgroups and enable targeted feature engineering.
 \end{itemize}
@@ -272,6 +384,124 @@ The violin plots provide a bivariate view of the distributions, combining densit
           \item Collectively, these insights inform feature selection and transformation choices, ultimately supporting improved predictive performance for multiclass stress classification -- mirroring findings in related data mining competitions and research.
         \end{itemize}
 \end{enumerate}
+
+\section{Preprocessing Pipeline}
+\subsection*{Anomaly Detection and Data Cleaning}
+Althouugh the dataset is reported to contain no missing values (NaN), we nonetheless perform through data cleaning as follow to ensure integrity and consistency:
+\begin{lstlisting}[language=python]
+# Handle missing values
+missing_values = df.isnull().sum()
+print(f"Missing values per column:\n{missing_values}")
+numeric_cols = self.data.select_dtypes(include=[np.number]).columns
+categorical_cols = data.select_dtypes(include=['object']).columns
+# Impute numeric columns
+if len(numeric_cols) > 0:
+    imputer = SimpleImputer(strategy=strategy)
+    data[numeric_cols] = imputer.fit_transform(data[numeric_cols])
+# Impute categorical columns
+if len(categorical_cols) > 0:
+    imputer = SimpleImputer(strategy='most_frequent')
+    data[categorical_cols] = imputer.fit_transform(data[categorical_cols])
+# Handle duplicates
+duplicate_count = df.duplicated().sum()
+print(f"Number of duplicate rows: {duplicate_count}")
+data = data.drop_duplicates()
+\end{lstlisting}
+\subsection*{Encode Categorical Variables}
+\begin{lstlisting}[language=python]
+from sklearn.preprocessing import LabelEncoder
+for col in columns:
+  if col in data.columns:
+      data[col] = label_encoder.fit_transform(data[col].astype(str))
+\end{lstlisting}
+\subsection*{Split Intro Train \& Validating Data}
+\begin{lstlisting}[language=python]
+X = data.drop(columns=[target_col])
+y = data[target_col]
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=test_size, random_state=42, stratify=y
+)
+\end{lstlisting}
+\section{Training Pipelines}
+\subsection{Model Selection}
+
+\subsubsection{Classifier Models}
+The dataset analyzed comprises $1100$ instances and $20$ features, encompassing numerical, categorical, and discrete integer variables, designed to classify students as dropout, enrolled, or graduate. While no missing values were present, the dataset exhibited significant class imbalance, providing a realistic scenario for educational predictive modeling focused on the early identification of at-risk stressed students using machine learning classifiers.
+\begin{lstlisting}[language=python]
+models = {
+  'Random Forest': RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1),
+  'Decision Tree': DecisionTreeClassifier(random_state=42, max_depth=10),
+  'SVM': SVC(kernel='rbf', random_state=42),
+  'KNN': KNeighborsClassifier(n_neighbors=5),
+  'Naive Bayes': GaussianNB(),
+  'Logistic Regression': LogisticRegression(random_state=42, max_iter=1000),
+  'Gradient Boosting': GradientBoostingClassifier(n_estimators=100, random_state=42)
+}
+\end{lstlisting}
+Seven classification model pipelines were evaluated in total, but this report emphasizes tree-based ensemble methods -- Random Forest and Gradient Boosting -- selected for their aptitude in managing mixed feature types, interpretability, and robust performance under imbalanced conditions.
+\subsubsection*{Random Forest Classifier}
+Random Forest works by creating an ensemble of multiple decision trees, each trained on a random subset of the data (bootstrapping) and features, then aggregating their predictions through majority voting for classification or averaging for regression. This reduces overfitting, handles variance well, and improves accuracy by leveraging diversity among the trees.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{../images/rf.png}
+  \caption{Random Forest Classifier}
+  \label{rf_clf}
+\end{figure}
+Random Forest (RF) is suitable for this dataset as an ensemble method that builds multiple decision trees via bagging, effectively handling mixed feature types, non-linear relationships, and class imbalance with techniques like class weighting. It reduces overfitting through randomness and provides feature importance scores, offering interpretable insights into factors like socio-economic status or grades that influence dropout, while achieving robust performance on tabular data without extensive preprocessing.
+
+\subsubsection*{Gradient Boosting Classifier}
+Gradient Boosting builds trees sequentially, where each new tree corrects the errors of the previous ones by minimizing a loss function using gradient descent. It focuses on hard-to-predict instances, often achieving high performance through additive modeling, with regularization to prevent overfitting.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../images/gb.png}
+  \caption{Gradient Boosting Classifier}
+  \label{gb_clf}
+\end{figure}
+Gradient Boosting excels by sequentially building trees to correct errors, capturing complex interactions and subtle patterns in the data better than single models. It addresses imbalance with built-in weighting and regularization to prevent overfitting, often yielding higher accuracy on imbalanced educational datasets, and includes feature importance for explaining predictions, making it a strong choice for model selection to optimize metrics like F1-score in student success forecasting.
+
+\subsubsection{Clustering Models}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 \end{document}

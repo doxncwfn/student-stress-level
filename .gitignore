@@ -52,3 +52,4 @@ data/processed/       # cleaned & engineered data
 report/figures/       # generated plots/images
 reports/*.html        # report exports
 images/
+results/
