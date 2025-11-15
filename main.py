@@ -167,7 +167,9 @@ def classification_menu(X_train=None, X_test=None, y_train=None, y_test=None):
     X_test_pca = pca.transform(X_test)
     
     X_train_rfe, selected_features = apply_rfe(pd.DataFrame(X_train_pca), y_train, n_features=10)
-    X_test_rfe = X_test_pca[:, [i for i, s in enumerate(pca.components_) if s in selected_features]]  # Approximate, adjust as needed
+    # Convert selected_features to integer indices if they're not already
+    selected_indices = [int(f) if isinstance(f, (str, float)) else f for f in selected_features]
+    X_test_rfe = X_test_pca[:, selected_indices]
     
     X_train_use = pd.DataFrame(X_train_rfe)
     X_test_use = pd.DataFrame(X_test_rfe)
