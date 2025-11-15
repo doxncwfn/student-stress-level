@@ -77,6 +77,68 @@ class DataVisualizer:
         print("✓ Correlation matrix saved to 'results/correlation_matrix.png'")
         plt.show()
         
+    def plot_high_corr_scatterplots(self, data, corr_threshold=0.7, title_prefix="High Correlation Scatterplots"):
+        """
+        Plot scatterplots for all highly correlated feature pairs (|r| >= threshold).
+
+        Args:
+            data: DataFrame of features.
+            corr_threshold (float): Threshold for absolute correlation.
+            title_prefix (str): Prefix for plot title.
+        """
+        import numpy as np
+
+        corr_matrix = data.corr()
+        upper_tri = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+
+        high_corr_pairs = [
+            (row, col, corr_matrix.loc[row, col])
+            for row in upper_tri.index
+            for col in upper_tri.columns
+            if pd.notnull(upper_tri.loc[row, col]) and abs(upper_tri.loc[row, col]) >= corr_threshold
+        ]
+
+        if high_corr_pairs:
+            nplots = len(high_corr_pairs)
+            rows = int(np.ceil(nplots / 2))
+            cols = 2 if nplots > 1 else 1
+
+            fig, axes = plt.subplots(rows, cols, figsize=(7 * cols, 5 * rows), dpi=130, squeeze=False)
+
+            for idx, (x, y, corr_val) in enumerate(high_corr_pairs):
+                r, c = divmod(idx, cols)
+                ax = axes[r, c]
+                sns.scatterplot(
+                    data=data,
+                    x=x,
+                    y=y,
+                    ax=ax,
+                    alpha=0.5,
+                )
+                sns.regplot(
+                    data=data,
+                    x=x,
+                    y=y,
+                    ax=ax,
+                    scatter=False,
+                    line_kws={'color': 'red', 'linewidth': 2}
+                )
+                ax.set_title(rf"{title_prefix}\n{x} vs {y}\n$r$ = {corr_val:.2f}", fontsize=12)
+                ax.set_xlabel(x)
+                ax.set_ylabel(y)
+
+            # Hide unused axes
+            for j in range(idx + 1, rows * cols):
+                r, c = divmod(j, cols)
+                axes[r, c].axis('off')
+
+            plt.tight_layout()
+            plt.savefig('results/high_corr_scatterplots.png', dpi=300, bbox_inches='tight')
+            print(f"✓ High-correlation scatterplots saved to 'results/high_corr_scatterplots.png'")
+            plt.show()
+        else:
+            print(f"No highly correlated pairs found (|r| ≥ {corr_threshold})")
+        
     def plot_confusion_matrix(self, y_true, y_pred, labels=None, title="Confusion Matrix"):
         """
         Plot confusion matrix
@@ -104,6 +166,80 @@ class DataVisualizer:
         plt.tight_layout()
         plt.savefig('results/confusion_matrix.png', dpi=300, bbox_inches='tight')
         print("✓ Confusion matrix saved to 'results/confusion_matrix.png'")
+        plt.show()
+        
+    def plot_outlier_violinplots(self, X, groupby=None, selected_cols=None, title="Feature Distribution by Outlier/Group"):
+        """
+        Plot violin plots for each feature, optionally grouped by a variable (e.g., stress level).
+        If groupby is not specified, plots violins for features in X.
+        If selected_cols is None, all columns will be used.
+
+        Args:
+            X (pd.DataFrame): Feature dataframe.
+            groupby (str, optional): Column to group violins by (e.g., 'stress_level').
+            selected_cols (list, optional): Specific feature columns to plot.
+            title (str): Overall plot title.
+        """
+        import math
+
+        df = X.copy()
+        # Validate groupby column if specified
+        if groupby is not None:
+            if groupby not in df.columns:
+                raise ValueError(f"Grouping column '{groupby}' not found in dataframe.")
+
+        # Auto-select numeric columns, excluding groupby if necessary
+        if selected_cols is None:
+            selected_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+            if groupby in selected_cols:
+                selected_cols.remove(groupby)
+
+        n_features = len(selected_cols)
+        n_cols = 3
+        n_rows = int(np.ceil(n_features / n_cols)) if n_features > 0 else 0
+
+        if n_features == 0:
+            print("No features available for violin plot.")
+            return
+
+        fig, axes = plt.subplots(n_rows, n_cols, figsize=(20, 5 * n_rows), dpi=150)
+        axes = np.array(axes).reshape(n_rows, n_cols)
+
+        for idx, col in enumerate(selected_cols):
+            r, c = divmod(idx, n_cols)
+            ax = axes[r, c]
+            if groupby is not None:
+                # Mimics EDA notebook: violin by group (e.g., stress_level)
+                sns.violinplot(
+                    data=df,
+                    x=groupby,
+                    y=col,
+                    inner='box',
+                    ax=ax,
+                    palette='Set2'
+                )
+                ax.set_title(f'{col} by {groupby}', fontsize=13)
+            else:
+                # Violinplot for numeric feature (no x)
+                sns.violinplot(
+                    data=df,
+                    y=col,
+                    inner='box',
+                    ax=ax,
+                    palette='Set2'
+                )
+                ax.set_title(f'{col} Distribution', fontsize=13)
+            ax.set_xlabel(None)
+            ax.set_ylabel(None)
+        # Hide unused axes (mimics notebook)
+        for j in range(idx + 1, n_rows * n_cols):
+            r, c = divmod(j, n_cols)
+            axes[r, c].axis('off')
+
+        plt.tight_layout()
+        fig.suptitle(title, fontsize=18, y=1.03)
+        plt.savefig('results/violinplots_by_outlier_or_group.png', dpi=300, bbox_inches='tight')
+        print("✓ Outlier/group violinplots saved to 'results/violinplots_by_outlier_or_group.png'")
         plt.show()
         
     def plot_feature_importance(self, feature_importance_df, top_n=20, title="Feature Importance"):
@@ -266,38 +402,55 @@ class DataVisualizer:
         
     def plot_data_distribution(self, data, columns=None, title="Data Distribution"):
         """
-        Plot distribution of multiple features
-        
+        Plot enhanced distributions of multiple numeric features (with KDE, mean and median lines).
+
         Args:
             data: DataFrame
-            columns: List of columns to plot (if None, plot all numeric columns)
+            columns: List of columns to plot (if None, select key numerics, fallback to all numerics)
             title (str): Plot title
         """
+        # Select columns as in EDA notebook, but fallback to all numerics if none found
         if columns is None:
-            columns = data.select_dtypes(include=[np.number]).columns.tolist()
-        
-        n_cols = min(4, len(columns))
-        n_rows = (len(columns) + n_cols - 1) // n_cols
-        
-        fig, axes = plt.subplots(n_rows, n_cols, figsize=(16, 4*n_rows))
-        axes = axes.flatten() if n_rows > 1 else [axes] if n_cols == 1 else axes
-        
-        for i, col in enumerate(columns):
-            if i < len(axes):
-                data[col].hist(bins=30, ax=axes[i], color='skyblue', edgecolor='black')
-                axes[i].set_title(col, fontweight='bold')
-                axes[i].set_xlabel('Value')
-                axes[i].set_ylabel('Frequency')
-        
-        # Hide unused subplots
-        for i in range(len(columns), len(axes)):
-            axes[i].axis('off')
-        
-        plt.suptitle(title, fontsize=16, fontweight='bold', y=1.00)
-        plt.tight_layout()
-        plt.savefig('results/data_distribution.png', dpi=300, bbox_inches='tight')
-        print("✓ Data distribution plot saved to 'results/data_distribution.png'")
-        plt.show()
+            numeric_cols = data.select_dtypes(include=[np.number]).columns.tolist()
+            preferred = [
+                'bullying', 'future_career_concerns', 'anxiety_level', 'depression', 'headache',
+                'extracurricular_activities', 'peer_pressure', 'noise_level', 'mental_health_history'
+            ]
+            columns = [c for c in numeric_cols if c in preferred]
+            if len(columns) == 0:
+                columns = numeric_cols[:6]  # fallback to first six numeric columns
+
+        n = len(columns)
+        n_cols = 2  # reduced for better screen fit
+        n_rows = int(np.ceil(n / n_cols)) if n > 0 else 0
+
+        if n > 0:
+            # Reduce overall figure height for screen fit; shrink subplot size
+            fig, axes = plt.subplots(n_rows, n_cols, figsize=(9.5, 3.5 * n_rows), dpi=120)
+            axes = np.array(axes).reshape(n_rows, n_cols)
+            for idx, col in enumerate(columns):
+                r, c = divmod(idx, n_cols)
+                ax = axes[r, c]
+                sns.histplot(data[col], kde=True, ax=ax, color='skyblue', edgecolor='black')
+                mean_val = data[col].mean()
+                median_val = data[col].median()
+                ax.axvline(mean_val, color='darkgreen', linestyle='--', linewidth=1.5, label=f'Mean: {mean_val:.2f}')
+                ax.axvline(median_val, color='darkorange', linestyle='--', linewidth=1.5, label=f'Median: {median_val:.2f}')
+                ax.legend(fontsize=8, loc="best", handlelength=1.15, frameon=False)
+                ax.set_title(f'{col} distribution', fontsize=11)
+                ax.set_xlabel(None)
+                ax.set_ylabel(None)
+            # Hide unused axes
+            for j in range(idx + 1, n_rows * n_cols):
+                r, c = divmod(j, n_cols)
+                axes[r, c].axis('off')
+            plt.suptitle(title, fontsize=14, fontweight='bold', y=1.01)
+            plt.tight_layout(rect=[0, 0, 1, 0.97])
+            plt.savefig('results/data_distribution.png', dpi=300, bbox_inches='tight')
+            print("✓ Data distribution plot saved to 'results/data_distribution.png'")
+            plt.show()
+        else:
+            print("No numeric columns to plot.")
         
     def create_results_folder(self):
         """Create results folder if it doesn't exist"""

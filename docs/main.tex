@@ -27,6 +27,7 @@
 \definecolor{stringcolor}{rgb}{0.7,0.13,0.13} % Dark red strings
 \definecolor{commentcolor}{rgb}{0.25,0.5,0.35} % Green comments
 \definecolor{backgroundcolor}{rgb}{0.97,0.97,0.97} % Light background
+\definecolor{numbercolor}{rgb}{0.85,0.65,0.13} % Numbers
 
 \lstdefinelanguage{Python}{
   morekeywords={
@@ -46,6 +47,32 @@
   stringstyle=\color{stringcolor}\ttfamily,
   morestring=[b]',
   morestring=[b]",
+  % Highlight numbers
+  literate=
+    *{0}{{{\color{numbercolor}0}}}1
+    {1}{{{\color{numbercolor}1}}}1
+    {2}{{{\color{numbercolor}2}}}1
+    {3}{{{\color{numbercolor}3}}}1
+    {4}{{{\color{numbercolor}4}}}1
+    {5}{{{\color{numbercolor}5}}}1
+    {6}{{{\color{numbercolor}6}}}1
+    {7}{{{\color{numbercolor}7}}}1
+    {8}{{{\color{numbercolor}8}}}1
+    {9}{{{\color{numbercolor}9}}}1
+    {.0}{{{\color{numbercolor}.0}}}2
+    {.1}{{{\color{numbercolor}.1}}}2
+    {.2}{{{\color{numbercolor}.2}}}2
+    {.3}{{{\color{numbercolor}.3}}}2
+    {.4}{{{\color{numbercolor}.4}}}2
+    {.5}{{{\color{numbercolor}.5}}}2
+    {.6}{{{\color{numbercolor}.6}}}2
+    {.7}{{{\color{numbercolor}.7}}}2
+    {.8}{{{\color{numbercolor}.8}}}2
+    {.9}{{{\color{numbercolor}.9}}}2
+    {e+}{{{\color{numbercolor}e+}}}2
+    {e-}{{{\color{numbercolor}e-}}}2
+    {\#\#NUMSTART\#\#}{}{0}
+    {\#\#NUMEND\#\#}{}{0},
 }
 \lstset{
   language=Python,
@@ -170,9 +197,8 @@
 \fancyfoot{}
 \coverpage\clearpage
 
-\tableofcontents
-% \listoffigures
-\clearpage
+\tableofcontents\clearpage
+\listoffigures\clearpage
 \setcounter{page}{1}
 \fancyfoot[L]{\scriptsize \ttfamily Data Mining -- Assignment Report\\1$^{\texttt{st}}$ Semester -- Academic year 2025-2026}
 \fancyfoot[R]{\scriptsize \ttfamily Page {\thepage}/\pageref{LastPage}}
@@ -180,7 +206,7 @@
 \subsection{Aim of the Project}
 \subsection{Specific Objectives}
 \clearpage
-\section{Explotatory Data Analysis}
+\section{Exploratory Data Analysis}
 \subsection{Data Loading and Initial Inspection}
 The dataset was loaded from a CSV file (\texttt{StressLevelDataset.csv}), which was obtained from \href{https://www.kaggle.com/datasets/mdsultanulislamovi/student-stress-monitoring-datasets}{\textcolor{blue}{\textit{Kaggle}}} and imported into a Pandas DataFrame for analysis. This dataset offers a comprehensive overview of factors that influence student stress, spanning psychological, physiological, environmental, academic, and social aspects. It is suitable for tasks such as stress prediction and factor analysis, with all data provided in numerical format for straightforward processing.
 \begin{itemize}
@@ -288,7 +314,7 @@ This visualization highlights key relationships influencing student stress, reve
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{../images/high_corr_scatterplots.png}
-  \caption{Highly Correlated Pairs}
+  \caption{Scatterplots of Highly Correlated Pairs $|r| \geq 0.7$}
   \label{highly_corr_pairs}
 \end{figure}
 \paragraph*{Insights:}
@@ -386,7 +412,7 @@ The violin plots provide a bivariate view of the distributions, combining densit
 \end{enumerate}
 
 \section{Preprocessing Pipeline}
-\subsection*{Anomaly Detection and Data Cleaning}
+\subsubsection*{Anomaly Detection and Data Cleaning}
 Althouugh the dataset is reported to contain no missing values (NaN), we nonetheless perform through data cleaning as follow to ensure integrity and consistency:
 \begin{lstlisting}[language=python]
 # Handle missing values
@@ -407,14 +433,34 @@ duplicate_count = df.duplicated().sum()
 print(f"Number of duplicate rows: {duplicate_count}")
 data = data.drop_duplicates()
 \end{lstlisting}
-\subsection*{Encode Categorical Variables}
+\subsubsection*{Anomaly Cleaning and Applying SMOTE }
+\begin{lstlisting}[language=python]
+for col in columns:
+  Q1 = df[col].quantile(0.25)
+  Q3 = df[col].quantile(0.75)
+  IQR = Q3 - Q1
+  lower_bound = Q1 - 1.5 * IQR
+  upper_bound = Q3 + 1.5 * IQR
+  df = df[(df[col] >= lower_bound) & (df[col] <= upper_bound)]
+# SMOTE
+smote = SMOTE(random_state=42)
+X_res, y_res = smote.fit_resample(X, y)
+\end{lstlisting}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../images/violinplots_iqr_cleaned.png}
+  \caption{Anomalies Cleaned violinplots}
+  \label{cleanedviolin}
+\end{figure}
+\subsubsection*{Encode Categorical Variables}
 \begin{lstlisting}[language=python]
 from sklearn.preprocessing import LabelEncoder
 for col in columns:
   if col in data.columns:
       data[col] = label_encoder.fit_transform(data[col].astype(str))
 \end{lstlisting}
-\subsection*{Split Intro Train \& Validating Data}
+\subsubsection*{Split Intro Train \& Validating Data}
 \begin{lstlisting}[language=python]
 X = data.drop(columns=[target_col])
 y = data[target_col]
@@ -422,20 +468,20 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=test_size, random_state=42, stratify=y
 )
 \end{lstlisting}
-\section{Training Pipelines}
-\subsection{Model Selection}
+\section{Training Pipeline}
+\subsection{Models Selection}
 
 \subsubsection{Classifier Models}
 The dataset analyzed comprises $1100$ instances and $20$ features, encompassing numerical, categorical, and discrete integer variables, designed to classify students as dropout, enrolled, or graduate. While no missing values were present, the dataset exhibited significant class imbalance, providing a realistic scenario for educational predictive modeling focused on the early identification of at-risk stressed students using machine learning classifiers.
 \begin{lstlisting}[language=python]
 models = {
-  'Random Forest': RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1),
-  'Decision Tree': DecisionTreeClassifier(random_state=42, max_depth=10),
-  'SVM': SVC(kernel='rbf', random_state=42),
-  'KNN': KNeighborsClassifier(n_neighbors=5),
-  'Naive Bayes': GaussianNB(),
-  'Logistic Regression': LogisticRegression(random_state=42, max_iter=1000),
-  'Gradient Boosting': GradientBoostingClassifier(n_estimators=100, random_state=42)
+'Random Forest': RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1),
+'Decision Tree': DecisionTreeClassifier(random_state=42, max_depth=10),
+'SVM': SVC(kernel='rbf', random_state=42),
+'KNN': KNeighborsClassifier(n_neighbors=5),
+'Naive Bayes': GaussianNB(),
+'Logistic Regression': LogisticRegression(random_state=42, max_iter=1000),
+'Gradient Boosting': GradientBoostingClassifier(n_estimators=100, random_state=42)
 }
 \end{lstlisting}
 Seven classification model pipelines were evaluated in total, but this report emphasizes tree-based ensemble methods -- Random Forest and Gradient Boosting -- selected for their aptitude in managing mixed feature types, interpretability, and robust performance under imbalanced conditions.
@@ -459,12 +505,118 @@ Gradient Boosting builds trees sequentially, where each new tree corrects the er
 \end{figure}
 Gradient Boosting excels by sequentially building trees to correct errors, capturing complex interactions and subtle patterns in the data better than single models. It addresses imbalance with built-in weighting and regularization to prevent overfitting, often yielding higher accuracy on imbalanced educational datasets, and includes feature importance for explaining predictions, making it a strong choice for model selection to optimize metrics like F1-score in student success forecasting.
 
-\subsubsection{Clustering Models}
+\subsubsection*{Clustering Models}
+Unsupervised clustering models were applied to discover latent groupings among students, offering insights that complement supervised classification. Principal Component Analysis (PCA) was used beforehand to reduce dimensionality while retaining most variance, enabling effective visualization and interpretation of clusters.
+\begin{lstlisting}[language=python]
+  from sklearn.decomposition import PCA
+  from sklearn.cluster import KMeans, AgglomerativeClustering, DBSCAN
+  # Apply PCA for reduction
+  X_pca = PCA(n_components=2, random_state=42).fit_transform(X_scaled)
+  # K-Means
+  kmeans = KMeans(n_clusters=3, random_state=42)
+  labels_kmeans = kmeans.fit_predict(X_pca)
+  # Hierarchical
+  hier = AgglomerativeClustering(n_clusters=3)
+  labels_hier = hier.fit_predict(X_pca)
+  # DBSCAN
+  dbscan = DBSCAN(eps=0.5, min_samples=5)
+  labels_dbscan = dbscan.fit_predict(X_pca)
+  \end{lstlisting}
 
+Clustering revealed distinct student groups based on multivariate patterns underlying stress and academic engagement. K-Means and hierarchical clustering provided grouping stability and interpretability, while DBSCAN offered robust detection of anomalies and noise -- crucial for flagging at-risk students who may otherwise be masked in class-centric analyses. Visualizations and silhouette scores guided the evaluation and naming of meaningful clusters used for downstream profiling and recommendations.
+\subsubsection*{K-Means Clustering}
+K-Means is a partition-based clustering algorithm that groups data into $k$ non-overlapping clusters by minimizing the within-cluster sum-of-squares. Each data point is assigned to the nearest cluster centroid, and centroids are iteratively updated until assignments stabilize. This method is well-suited for datasets with quantitative features and helps to reveal underlying group structures by forming compact, clearly-separated clusters.
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../images/kmeans.png}
+  \caption{K-Means Clustering}
+  \label{kmeans}
+\end{figure}
 
+For this dataset, K-Means performs robustly due to its completely numerical feature set, balanced class distribution, and absence of missing values. The consistent scaling and moderate size of the data allow for fast convergence and reliable results. These factors enable K-Means to effectively identify groups of students who share similar stress profiles and academic patterns, supporting the discovery of actionable segments for targeted interventions and recommendations.
 
+\subsubsection*{Hierarchical Clustering}
+Hierarchical clustering, specifically agglomerative clustering, builds a nested tree (dendrogram) of clusters by successively merging the two closest data points or clusters until all points are united into a single cluster. This process uses linkage criteria, such as Ward's method, to define cluster distances and can reveal rich structural relationships within the dataset at multiple granularities.
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../images/hierarchical.png}
+  \caption{Hierarchical (Agglomerative) Clustering and Dendrogram}
+  \label{hierarchical}
+\end{figure}
+
+Hierarchical clustering is particularly valuable for this student dataset, offering interpretable visual groupings through dendrograms that expose both global and local patterns among students' stress and academic profiles. Because our features are purely numerical and well-scaled, hierarchical clustering produces meaningful splits without being skewed by differing ranges or noise. The ability to visualize the merge steps assists in selecting the most natural number of clusters, while also detecting subgroups and anomalous cases. This complements K-Means by clarifying nested relationships, supporting granular targeting in interventions and profiling strategies.
+
+\subsubsection*{DBSCAN Clustering}
+DBSCAN (Density-Based Spatial Clustering of Applications with Noise) forms clusters by connecting points close together in dense regions and labels points in sparse areas as noise (outliers). Unlike K-Means or hierarchical clustering, DBSCAN does not require the number of clusters to be specified in advance, and it can discover clusters of irregular shape and variable size.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\textwidth]{../images/dbscan.png}
+  \caption{DBSCAN Clustering}
+  \label{dbscan}
+\end{figure}
+
+DBSCAN is particularly powerful in this student context for detecting minority subgroups or atypical students whose stress or engagement profiles are substantially different from their peers. By identifying outliers, DBSCAN helps flag at-risk individuals who might not belong to any major cluster and could otherwise be overlooked by centroid- or linkage-based methods. The ability to tune \texttt{eps} (radius threshold) and \texttt{min\_samples} provides flexibility for handling varying densities in student survey responses, revealing both tight-knit groups and peripheral cases critical for intervention.
+\subsection{Advanced Techniques}
+\subsubsection*{Principal Component Analysis (PCA)}
+Principal Component Analysis (PCA) is an unsupervised technique for dimensionality reduction that transforms correlated original features into a smaller number of uncorrelated variables, called principal components, capturing the maximum variance present in the data.
+
+\noindent\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../images/pca.png}
+  \caption{PCA algorithm}
+  \label{pca}
+\end{figure}
+PCA is well-suited for our student stress dataset (1100 samples, 20 numerical features), which shows strong inter-feature correlations (e.g., \texttt{anxiety\_level} and \texttt{depression} $r=0.69$). This multicollinearity can inflate model variance and cause overfitting. PCA solves this by projecting data onto orthogonal axes of maximum variance. With standardized numeric features, PCA efficiently reduces dimensions while retaining at least $95\%$ of the variance.
+
+For this data, PCA typically reduces dimensionality to $8$-$10$ principal components, with the main components reflecting variability in psychological and social factors. Higher-variance features dominate early components, improving interpretability and classifier performance.
+
+\noindent
+\begin{lstlisting}[language=python]
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+# Standardize features before PCA
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+# Fit PCA to retain 95% of explained variance
+pca = PCA(n_components=0.95, random_state=42)
+X_pca = pca.fit_transform(X_scaled)
+\end{lstlisting}
+
+PCA thus mitigates the curse of dimensionality, addresses multicollinearity, and reduces noise, benefiting downstream supervised and unsupervised learning tasks.
+
+\subsection{Recursive Feature Elimination (RFE)}
+Recursive Feature Elimination (RFE) is a supervised feature selection method that recursively removes the least important features according to a model's coefficients or feature importances, ranking all features and selecting the top subset.
+
+\noindent\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../images/rfe.png}
+  \caption{RFE algorithm}
+  \label{rfe}
+\end{figure}
+In this project, RFE is well-suited because our 20 input features vary in predictive strength: features like \texttt{anxiety\_level}, \texttt{depression}, \texttt{bullying}, and \texttt{future\_career\_concerns} show strong correlation with stress, while others contribute less. We use a Random Forest estimator in RFE -- ideal for our numerical, mildly imbalanced data and its non-linear feature interactions. Our dataset's high quality (no missing or duplicate records, balanced targets) supports reliable feature ranking. RFE works particularly well after PCA by removing residual redundancy, helping reduce dimensionality while retaining essential predictors. For this analysis, we selected 10 features to optimize simplicity and prevent overfitting.
+
+\noindent
+\begin{lstlisting}[language=python]
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import RFE
+# RFE setup with Random Forest (selecting 10 key features)
+estimator = RandomForestClassifier(random_state=42)
+rfe = RFE(estimator=estimator, n_features_to_select=10)
+X_rfe = rfe.fit_transform(X, y)
+selected_features = X.columns[rfe.support_]
+\end{lstlisting}
+
+RFE efficiently narrows down the feature set, enhancing both classification and clustering by concentrating on the most informative predictors. In our analysis, RFE selected features that correspond with inter-correlation clusters in the data (e.g., academic factors such as \texttt{study\_load}), frequently retaining the strongest variable from each domain -- such as \texttt{bullying} from social factors and \texttt{anxiety\_level} from psychological factors. This targeted selection increases the predictive power of models, as demonstrated in prior educational data mining research where using RFE-selected features led to improved classification accuracy for student stress prediction.
+\section{Results and Analysis}
+
+\subsection{Classification Results}
+
+\subsection{Clustering Results}
+
+\subsection{Model Comparison}
 
 
 

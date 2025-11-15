@@ -580,9 +580,8 @@ def complete_pipeline():
     # Enhanced distributions
     visualizer.plot_data_distribution(X_train)
     
-    # High corr scatter (call the code as in menu)
-    # Outlier boxplots (similar)
-    
+    # High correlation scatterplots in NOTEBOOK
+    # Outlier violinplots in NOTBOOK
     # Save final results
     save_results({
         'best_model': best_name,
