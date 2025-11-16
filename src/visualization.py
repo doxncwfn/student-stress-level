@@ -421,7 +421,7 @@ class DataVisualizer:
                 columns = numeric_cols[:6]  # fallback to first six numeric columns
 
         n = len(columns)
-        n_cols = 2  # reduced for better screen fit
+        n_cols = 3  # reduced for better screen fit
         n_rows = int(np.ceil(n / n_cols)) if n > 0 else 0
 
         if n > 0:

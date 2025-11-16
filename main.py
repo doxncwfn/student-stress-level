@@ -86,7 +86,6 @@ def preprocessing_menu():
     """Data preprocessing menu"""
     print_header("DATA PREPROCESSING & EXPLORATION", width=80)
     
-    # Choose dataset
     print("\nAvailable Datasets:")
     print("1. StressLevelDataset.csv (Numeric features)")
     print("2. Stress_Dataset.csv (Mixed features)")
@@ -98,17 +97,12 @@ def preprocessing_menu():
     else:
         data_path = 'data/raw/Stress_Dataset.csv'
     
-    # Initialize preprocessor
     preprocessor = DataPreprocessor(data_path)
-    
-    # Run preprocessing pipeline
     X_train, X_test, y_train, y_test = preprocessor.preprocess_pipeline()
     
-    # Combine for outlier removal
     train_df = pd.concat([X_train, y_train], axis=1)
     test_df = pd.concat([X_test, y_test], axis=1)
     
-    # Remove outliers (assuming all columns are numerical except target)
     numeric_cols = X_train.select_dtypes(include=[np.number]).columns.tolist()
     print("\nRemoving outliers using IQR...")
     train_df = remove_outliers_iqr(train_df, numeric_cols)
@@ -121,18 +115,15 @@ def preprocessing_menu():
     
     print(f"Rows after outlier removal: Train {X_train.shape[0]}, Test {X_test.shape[0]}")
     
-    # Optional SMOTE (check if needed)
     print("\nClass distribution:")
     print(y_train.value_counts(normalize=True))
     if input("Apply SMOTE? (y/n): ").lower() == 'y':
         X_train, y_train = apply_smote(X_train, y_train)
     
-    # Save processed data
     print("\nSaving processed data...")
     export_to_csv(train_df, 'train_data.csv', 'data/processed')
     export_to_csv(test_df, 'test_data.csv', 'data/processed')
     
-    # Visualize
     visualizer = DataVisualizer()
     visualizer.create_results_folder()
     visualizer.plot_target_distribution(y_train, "Training Set - Stress Level Distribution")
@@ -145,7 +136,6 @@ def classification_menu(X_train=None, X_test=None, y_train=None, y_test=None):
     """Classification analysis menu"""
     print_header("CLASSIFICATION ANALYSIS", width=80)
     
-    # Load data if not provided
     if X_train is None:
         print("\nLoading preprocessed data...")
         try:
@@ -163,20 +153,17 @@ def classification_menu(X_train=None, X_test=None, y_train=None, y_test=None):
             pause()
             return
     
-    # Feature Engineering: PCA and RFE
     print("\nApplying advanced techniques...")
     X_train_pca, pca = apply_pca(X_train)
     X_test_pca = pca.transform(X_test)
     
     X_train_rfe, selected_features = apply_rfe(pd.DataFrame(X_train_pca), y_train, n_features=10)
-    # Convert selected_features to integer indices if they're not already
     selected_indices = [int(f) if isinstance(f, (str, float)) else f for f in selected_features]
     X_test_rfe = X_test_pca[:, selected_indices]
     
     X_train_use = pd.DataFrame(X_train_rfe)
     X_test_use = pd.DataFrame(X_test_rfe)
     
-    # Initialize classifier
     classifier = StressClassifier()
     
     print("\nClassification Options:")
@@ -187,27 +174,17 @@ def classification_menu(X_train=None, X_test=None, y_train=None, y_test=None):
     choice = get_user_choice(1, 3)
     
     if choice == 1:
-        # Train all models
         classifier.train_all_models(X_train_use, y_train, X_test_use, y_test)
-        
-        # Compare models
         comparison_df = classifier.compare_models()
-        
-        # Get best model
         best_name, best_model, best_metrics = classifier.get_best_model()
         
-        # Visualize results
         visualizer = DataVisualizer()
         visualizer.create_results_folder()
         
-        # Plot confusion matrix for best model
         y_pred = classifier.predict(best_name, X_test_use)
         visualizer.plot_confusion_matrix(y_test, y_pred, title=f"Confusion Matrix - {best_name}")
-        
-        # Plot model comparison
         visualizer.plot_model_comparison(comparison_df, metric='Accuracy')
         
-        # Save results
         save_results({
             'best_model': best_name,
             'accuracy': float(best_metrics['accuracy']),
@@ -230,14 +207,12 @@ def classification_menu(X_train=None, X_test=None, y_train=None, y_test=None):
         classifier.evaluate_model(model_name, X_test_use, y_test)
         classifier.print_evaluation(model_name)
         
-        # Visualize
         visualizer = DataVisualizer()
         visualizer.create_results_folder()
         y_pred = classifier.predict(model_name, X_test_use)
         visualizer.plot_confusion_matrix(y_test, y_pred, title=f"Confusion Matrix - {model_name}")
         
     elif choice == 3:
-        # Feature importance
         print("\nSelect model for feature importance:")
         tree_models = ['Random Forest', 'Decision Tree', 'Gradient Boosting']
         for i, model in enumerate(tree_models, 1):
@@ -246,14 +221,11 @@ def classification_menu(X_train=None, X_test=None, y_train=None, y_test=None):
         model_choice = get_user_choice(1, len(tree_models))
         model_name = tree_models[model_choice - 1]
         
-        # Train if not already trained
         if model_name not in classifier.trained_models:
             classifier.train_model(model_name, X_train_use, y_train)
         
-        # Get feature importance
-        feature_importance = classifier.get_feature_importance(model_name, selected_features)  # Use selected
+        feature_importance = classifier.get_feature_importance(model_name, selected_features)
         
-        # Visualize
         visualizer = DataVisualizer()
         visualizer.create_results_folder()
         visualizer.plot_feature_importance(feature_importance, top_n=15, 
@@ -266,7 +238,6 @@ def clustering_menu(X_train=None):
     """Clustering analysis menu"""
     print_header("CLUSTERING ANALYSIS", width=80)
     
-    # Load data if not provided
     if X_train is None:
         print("\nLoading preprocessed data...")
         try:
@@ -278,11 +249,9 @@ def clustering_menu(X_train=None):
             pause()
             return
     
-    # Apply PCA for clustering (since high dim)
     X_train_pca, _ = apply_pca(X_train)
     X_train = pd.DataFrame(X_train_pca)
     
-    # Initialize clusterer
     clusterer = StressClusterer()
     visualizer = DataVisualizer()
     visualizer.create_results_folder()
@@ -297,58 +266,35 @@ def clustering_menu(X_train=None):
     choice = get_user_choice(1, 5)
     
     if choice == 1:
-        # Find optimal K
         results_df = clusterer.find_optimal_k(X_train, k_range=range(2, 11))
-        
-        # Visualize
         visualizer.plot_elbow_curve(results_df['k'].tolist(), results_df['inertia'].tolist())
         visualizer.plot_silhouette_scores(results_df['k'].tolist(), results_df['silhouette'].tolist())
         
     elif choice == 2:
-        # K-Means
         k = int(input("\nEnter number of clusters (default=3): ") or "3")
         labels = clusterer.kmeans_clustering(X_train, n_clusters=k)
-        
-        # Analyze clusters
         clusterer.analyze_clusters(X_train, labels, [f'PC{i+1}' for i in range(X_train.shape[1])])
-        
-        # Visualize
         visualizer.plot_clustering_results(X_train, labels, title=f"K-Means Clustering (k={k})")
         
     elif choice == 3:
-        # Hierarchical
         k = int(input("\nEnter number of clusters (default=3): ") or "3")
         labels = clusterer.hierarchical_clustering(X_train, n_clusters=k)
-        
-        # Analyze clusters
         clusterer.analyze_clusters(X_train, labels, [f'PC{i+1}' for i in range(X_train.shape[1])])
-        
-        # Visualize
         visualizer.plot_clustering_results(X_train, labels, title=f"Hierarchical Clustering (k={k})")
         
     elif choice == 4:
-        # DBSCAN
         eps = float(input("\nEnter eps value (default=0.5): ") or "0.5")
         min_samples = int(input("Enter min_samples (default=5): ") or "5")
         labels = clusterer.dbscan_clustering(X_train, eps=eps, min_samples=min_samples)
-        
-        # Analyze clusters
         clusterer.analyze_clusters(X_train, labels, [f'PC{i+1}' for i in range(X_train.shape[1])])
-        
-        # Visualize
         visualizer.plot_clustering_results(X_train, labels, title="DBSCAN Clustering")
         
     elif choice == 5:
-        # Compare all methods
         print("\nRunning all clustering methods...")
         clusterer.kmeans_clustering(X_train, n_clusters=3)
         clusterer.hierarchical_clustering(X_train, n_clusters=3)
         clusterer.dbscan_clustering(X_train, eps=0.5, min_samples=5)
-        
-        # Compare
         comparison_df = clusterer.compare_clustering_methods()
-        
-        # Save results
         export_to_csv(comparison_df, 'clustering_comparison.csv')
     
     pause()
@@ -405,8 +351,7 @@ def visualization_menu():
         try:
             train_data = pd.read_csv('data/processed/train_data.csv')
             X = train_data.iloc[:, :-1]
-            # Enhanced distribution: histograms, boxplots, violins
-            visualizer.plot_data_distribution(X)  # Assume this now includes multiple plot types
+            visualizer.plot_data_distribution(X)
         except FileNotFoundError:
             print("✗ Preprocessed data not found. Please run preprocessing first.")
     
@@ -423,9 +368,7 @@ def visualization_menu():
                 for col in upper_tri.columns
                 if pd.notnull(upper_tri.loc[row, col]) and abs(upper_tri.loc[row, col]) >= corr_threshold
             ]
-            # Plot scatterplots for high corr pairs (integrate into visualizer if needed)
             if high_corr_pairs:
-                # Code similar to eda.ipynb
                 nplots = len(high_corr_pairs)
                 rows = int(np.ceil(nplots / 2))
                 cols = 2 if nplots > 1 else 1
@@ -448,7 +391,6 @@ def visualization_menu():
         try:
             train_data = pd.read_csv('data/processed/train_data.csv')
             X = train_data.iloc[:, :-1]
-            # Boxplots for outliers
             fig, ax = plt.subplots(figsize=(12, 6))
             sns.boxplot(data=X, ax=ax)
             plt.xticks(rotation=90)
@@ -460,7 +402,6 @@ def visualization_menu():
     
     elif choice == 6:
         print("\nGenerating results summary...")
-        # Create a comprehensive report
         report = []
         report.append("="*80)
         report.append("STUDENT STRESS ANALYSIS - RESULTS SUMMARY")
@@ -468,7 +409,6 @@ def visualization_menu():
         report.append(f"\nGenerated on: {get_timestamp()}")
         report.append("\n" + "-"*80)
         
-        # Load classification results
         try:
             class_results = load_results('classification_results.json')
             if class_results:
@@ -485,7 +425,6 @@ def visualization_menu():
         report.append("\nFor detailed results, check the 'results' folder.")
         report.append("="*80)
         
-        # Save report
         report_text = "\n".join(report)
         with open('results/summary_report.txt', 'w') as f:
             f.write(report_text)
@@ -510,13 +449,11 @@ def complete_pipeline():
     if confirm != 'y':
         return
     
-    # Step 1: Preprocessing
     print_section("STEP 1: DATA PREPROCESSING")
     data_path = 'data/raw/StressLevelDataset.csv'
     preprocessor = DataPreprocessor(data_path)
     X_train, X_test, y_train, y_test = preprocessor.preprocess_pipeline()
     
-    # Outlier removal
     train_df = pd.concat([X_train, y_train], axis=1)
     test_df = pd.concat([X_test, y_test], axis=1)
     numeric_cols = X_train.select_dtypes(include=[np.number]).columns.tolist()
@@ -527,66 +464,51 @@ def complete_pipeline():
     X_test = test_df.iloc[:, :-1]
     y_test = test_df.iloc[:, -1]
     
-    # Optional SMOTE
     if input("Apply SMOTE in pipeline? (y/n): ").lower() == 'y':
         X_train, y_train = apply_smote(X_train, y_train)
     
-    # Save processed data
     export_to_csv(train_df, 'train_data.csv', 'data/processed')
     export_to_csv(test_df, 'test_data.csv', 'data/processed')
     
-    # Step 2: Advanced Techniques
     print_section("STEP 2: ADVANCED TECHNIQUES")
     X_train_pca, pca = apply_pca(X_train)
     X_test_pca = pca.transform(X_test)
     X_train_rfe, selected_features = apply_rfe(pd.DataFrame(X_train_pca), y_train, n_features=10)
-    X_test_rfe = X_test_pca[:, :len(selected_features)]  # Simplified
+    X_test_rfe = X_test_pca[:, :len(selected_features)]
     X_train_use = pd.DataFrame(X_train_rfe)
     X_test_use = pd.DataFrame(X_test_rfe)
     
-    # Step 3: Classification
     print_section("STEP 3: CLASSIFICATION ANALYSIS")
     classifier = StressClassifier()
     classifier.train_all_models(X_train_use, y_train, X_test_use, y_test)
     comparison_df = classifier.compare_models()
     best_name, best_model, best_metrics = classifier.get_best_model()
     
-    # Step 4: Clustering
     print_section("STEP 4: CLUSTERING ANALYSIS")
     clusterer = StressClusterer()
     clusterer.kmeans_clustering(pd.DataFrame(X_train_pca), n_clusters=3)
     clusterer.hierarchical_clustering(pd.DataFrame(X_train_pca), n_clusters=3)
     clusterer.compare_clustering_methods()
     
-    # Step 5: Visualizations
     print_section("STEP 5: GENERATING VISUALIZATIONS")
     visualizer = DataVisualizer()
     visualizer.create_results_folder()
     
-    # Classification visualizations
     y_pred = classifier.predict(best_name, X_test_use)
     visualizer.plot_target_distribution(y_train)
     visualizer.plot_confusion_matrix(y_test, y_pred, title=f"Confusion Matrix - {best_name}")
     visualizer.plot_model_comparison(comparison_df)
     
-    # Feature importance
     feature_importance = classifier.get_feature_importance(best_name, selected_features)
     if feature_importance is not None:
         visualizer.plot_feature_importance(feature_importance, top_n=15)
     
-    # Clustering visualizations
     kmeans_labels = clusterer.get_cluster_labels('KMeans')
     visualizer.plot_clustering_results(pd.DataFrame(X_train_pca), kmeans_labels, title="K-Means Clustering Results")
     
-    # Correlation matrix
     visualizer.plot_correlation_matrix(X_train)
-    
-    # Enhanced distributions
     visualizer.plot_data_distribution(X_train)
     
-    # High correlation scatterplots in NOTEBOOK
-    # Outlier violinplots in NOTBOOK
-    # Save final results
     save_results({
         'best_model': best_name,
         'accuracy': float(best_metrics['accuracy']),
@@ -607,7 +529,6 @@ def main():
     """Main application loop"""
     create_project_structure()
     
-    # Shared data variables
     X_train = X_test = y_train = y_test = None
     
     while True:
