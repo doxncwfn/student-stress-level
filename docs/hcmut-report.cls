@@ -42,7 +42,7 @@
 \newcommand{\@uniname}{HO CHI MINH CITY UNIVERSITY OF TECHNOLOGY}
 \newcommand{\@deptname}{FACULTY OF COMPUTER SCIENCE AND ENGINEERING}
 \newcommand{\@coursename}{Data Mining -- CO3029}
-\newcommand{\@reporttype}{Assignment Report}
+\newcommand{\@reporttype}{Assignment Report\\\href{https://www.youtube.com/watch?v=I5CPWxNhHsI}{\textcolor{blue}{\textit{Demonstration}}} | \href{https://github.com/doxncwfn/student-stress-level}{\textcolor{blue}{\textit{Source Code}}}}
 \renewcommand{\@title}{Student Stress Insights: Identifying Key Predictors}
 \newcommand{\@advisor}{& Msc. Thai Do Thanh &}
 \newcommand{\@stuname}{& Cuong Doan Phuong Hung & ID 2310381 \\
@@ -144,7 +144,6 @@
       \Large\@coursename                                 \\
       {}                                                 \\
       \midrule                                           \\
-      {}                                                 \\
       \Large\@reporttype                                 \\
       {}                                                 \\
       \Huge\parbox[c]{0.8\linewidth}{\centering \@title} \\

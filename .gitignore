@@ -51,5 +51,4 @@ data/raw/             # original survey dataset (not tracked in GitHub)
 data/processed/       # cleaned & engineered data
 report/figures/       # generated plots/images
 reports/*.html        # report exports
-images/
 results/
